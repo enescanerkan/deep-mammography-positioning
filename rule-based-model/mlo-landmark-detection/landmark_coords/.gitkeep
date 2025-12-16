@@ -1,0 +1,3 @@
+# This folder will contain MLO landmark coordinate JSON files
+# Run the landmark extraction script to generate them:
+# python code/regression/main/utils/create_perpendicular_labels_for_dataset.py

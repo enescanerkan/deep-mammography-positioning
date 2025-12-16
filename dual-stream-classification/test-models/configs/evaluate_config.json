@@ -1,0 +1,53 @@
+{
+    "_comment": "Paths relative to configs/ directory",
+    "_note": "configs/ -> test-models/ -> dual-stream-classification/ -> project_root/",
+    
+    "data": {
+        "mlo_dir": "../../../data/processed/mlo/images",
+        "cc_dir": "../../../data/processed/cc/images",
+        "mlo_labels": "../../../labels/mlo_labels.csv",
+        "cc_labels": "../../../labels/cc_labels.csv"
+    },
+    
+    "model": {
+        "backbone": "resnet18",
+        "fusion_method": "concat",
+        "num_classes": 2,
+        "model_path_template": "../../results/{backbone}/dual_best_model.pth"
+    },
+    
+    "evaluation": {
+        "batch_size": 16,
+        "threshold": 0.5,
+        "num_workers": 0,
+        "device": "cuda"
+    },
+    
+    "output": {
+        "results_dir": "evaluation_results",
+        "save_predictions": true,
+        "save_visualizations": true,
+        "generate_gradcam": false,
+        "gradcam_samples": 10
+    },
+    
+    "backbones": {
+        "resnet18": {
+            "dropout_rate1": 0.4,
+            "dropout_rate2": 0.3
+        },
+        "resnet50": {
+            "dropout_rate1": 0.5,
+            "dropout_rate2": 0.4
+        },
+        "efficientnet_b0": {
+            "dropout_rate1": 0.5,
+            "dropout_rate2": 0.4
+        },
+        "mobilenet_v2": {
+            "dropout_rate1": 0.35,
+            "dropout_rate2": 0.25
+        }
+    }
+}
+

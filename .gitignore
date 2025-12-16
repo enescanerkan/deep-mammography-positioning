@@ -1,0 +1,92 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyTorch
+*.pth
+*.pt
+*.ckpt
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data
+*.npy
+*.npz
+*.dicom
+*.dcm
+data/
+processed_data/
+landmark_coords/*.json
+!landmark_coords/.gitkeep
+
+# Results
+results/
+outputs/
+logs/
+visualizations/
+combined_quality_results/
+mlo_original_visualizations*/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+*.cache
+
+# Models (keep structure, ignore weights)
+models/*.pth
+models/*.pt
+saved_models/*.pth
+saved_models/*.pt
+
+# Keep model directories but ignore contents
+!models/.gitkeep
+!saved_models/.gitkeep
+
+# CSV results
+*_results.csv
+*_predictions.csv
+*_metrics.csv
+
+# JSON results
+*_results.json
+all_test_*.json
+mlo_good_cc_results.json
+
+# Specific files to ignore
+FIX_SUMMARY.md

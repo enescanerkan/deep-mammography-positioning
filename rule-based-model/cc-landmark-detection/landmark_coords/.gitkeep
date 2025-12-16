@@ -1,0 +1,3 @@
+# This folder will contain CC landmark coordinate JSON files
+# Run the landmark extraction script to generate them:
+# python code/regression/preprocessing/create_labels_for_dataset.py
