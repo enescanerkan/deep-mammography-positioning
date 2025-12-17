@@ -240,7 +240,7 @@ All configurations use **relative paths** that work automatically:
 
 A standalone Windows application is available with pre-trained models for immediate use.
 
-**Download**: [MammogramAnalysis.exe](https://github.com/yourusername/deep-mammography-positioning/releases)
+**Download**: [MammogramAnalysis.exe](https://drive.google.com/file/d/1NjDYhdxcQtbDw1QGIOfMldMnwW8qhSY3/view?usp=drive_link)
 
 ### Features
 
