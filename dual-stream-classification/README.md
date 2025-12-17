@@ -75,12 +75,12 @@ MODEL_CONFIGS = {
 
 ## Supported Backbones
 
-| Backbone | Params | Batch Size | Learning Rate | Best For |
-|----------|--------|------------|---------------|----------|
-| ResNet-18 | 11M | 32 | 3e-5 | Balanced performance |
-| ResNet-50 | 23M | 16 | 1.5e-5 | Higher accuracy |
-| EfficientNet-B0 | 4M | 32 | 2e-5 | Efficiency |
-| MobileNet-V2 | 2M | 48 | 4e-5 | Speed |
+| Backbone | 
+|----------|
+| ResNet-18 | 
+| ResNet-50 | 
+| EfficientNet-B0 | 
+| MobileNet-V2 |
 
 ## Training Parameters
 
