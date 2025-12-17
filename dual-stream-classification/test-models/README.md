@@ -16,12 +16,12 @@ python evaluate.py --config configs/evaluate_config.json --model mobilenet_v2
 
 ## Available Models
 
-| Backbone | Parameters | Description |
-|----------|------------|-------------|
-| `resnet18` | 11M | Default, balanced performance |
-| `resnet50` | 23M | Higher accuracy, more computation |
-| `efficientnet_b0` | 4M | Efficient, good accuracy |
-| `mobilenet_v2` | 2M | Fastest, mobile-friendly |
+| Backbone |
+|----------|
+| `resnet18` |
+| `resnet50` |
+| `efficientnet_b0` |
+| `mobilenet_v2` |
 
 ## Configuration
 
