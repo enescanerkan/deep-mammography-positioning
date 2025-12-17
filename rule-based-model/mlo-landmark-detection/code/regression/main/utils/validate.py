@@ -1,5 +1,7 @@
+# validate.py - MLO Landmark Detection
+
 import torch
-import gc
+from tqdm import tqdm
 from .loss import MultifacetedLoss
 
 class Validator:
@@ -13,70 +15,60 @@ class Validator:
             epsilon=config['epsilon'],
             alpha=config['alpha'],
             beta=config['beta'],
-            gamma=config['gamma']
+            gamma=config['gamma'],
+            adaptive_weights=False  # Validation uses fixed weights for consistent evaluation
         ).to(self.device)
         self.best_val_loss = float('inf')
 
     def validate(self):
         self.model.eval()
         total_loss = 0.0
-        total_pec1 = 0.0
-        total_pec2 = 0.0
-        total_nipple = 0.0
-        batch_count = 0
+        sum_pec1, sum_pec2, sum_nipple = 0.0, 0.0, 0.0
+        valid_batches = 0
+        nan_inf_count = 0
         
         with torch.no_grad():
-            for batch_idx, (images, landmarks) in enumerate(self.val_loader):
-                try:
-                    images, landmarks = images.to(self.device), landmarks.to(self.device)
-                    outputs = self.model(images)
-                    loss, pec1, pec2, nipple = self.criterion(outputs, landmarks)
-                    
-                    # Skip batch if loss is NaN/Inf
-                    if torch.isnan(loss) or torch.isinf(loss):
-                        del images, landmarks, outputs, loss
-                        if torch.cuda.is_available():
-                            torch.cuda.empty_cache()
-                        continue
-                    
-                    total_loss += loss.item()
-                    total_pec1 += pec1
-                    total_pec2 += pec2
-                    total_nipple += nipple
-                    batch_count += 1
-                    
-                    # Clean up tensors
-                    del images, landmarks, outputs, loss
-                    
-                    # Periodic memory cleanup every 20 batches
-                    if batch_idx % 20 == 0 and batch_idx > 0:
-                        if torch.cuda.is_available():
-                            torch.cuda.empty_cache()
-                        gc.collect()
+            progress_bar = tqdm(self.val_loader, desc='Validating', leave=False)
+            for batch_idx, (images, landmarks) in enumerate(progress_bar):
+                images, landmarks = images.to(self.device), landmarks.to(self.device)
+                outputs = self.model(images)
+                loss = self.criterion(outputs, landmarks)
                 
-                except RuntimeError as e:
-                    if 'out of memory' in str(e):
-                        print(f"⚠️  WARNING: OOM in validation batch {batch_idx}. Clearing cache and skipping.")
-                        if torch.cuda.is_available():
-                            torch.cuda.empty_cache()
-                        gc.collect()
-                        continue
-                    else:
-                        raise e
+                # Check for NaN/Inf in validation loss
+                if torch.isnan(loss) or torch.isinf(loss):
+                    nan_inf_count += 1
+                    continue
+                
+                total_loss += loss.item()
+                valid_batches += 1
+                
+                # Accumulate component losses
+                sum_pec1 += self.criterion.last_pec1_loss
+                sum_pec2 += self.criterion.last_pec2_loss
+                sum_nipple += self.criterion.last_nipple_loss
+
+        # Use valid_batches count to avoid division by zero
+        if valid_batches == 0:
+            print("  ERROR: No valid validation batches! Returning high loss.")
+            return float('inf'), False
         
-        # Use batch_count instead of len(val_loader) in case some batches were skipped
-        if batch_count == 0:
-            print("⚠️  WARNING: All validation batches were skipped!")
-            return float('inf'), 0.0, 0.0, 0.0, False
-
-        avg_loss = total_loss / batch_count
-        avg_pec1 = total_pec1 / batch_count
-        avg_pec2 = total_pec2 / batch_count
-        avg_nipple = total_nipple / batch_count
-
+        avg_loss = total_loss / valid_batches
+        avg_pec1 = sum_pec1 / valid_batches
+        avg_pec2 = sum_pec2 / valid_batches
+        avg_nipple = sum_nipple / valid_batches
+        
+        print(f"  Val Loss: {avg_loss:.6f}", end='')
+        
         # Determine if this is the best model so far based on validation loss
         is_best = avg_loss < self.best_val_loss
         if is_best:
             self.best_val_loss = avg_loss
+            print(f" <- Best model!")
+        else:
+            print()
+        
+        # Print warnings summary if any
+        if nan_inf_count > 0:
+            print(f"  WARNING: {nan_inf_count} validation batch(es) skipped due to NaN/Inf")
 
-        return avg_loss, avg_pec1, avg_pec2, avg_nipple, is_best
+        return avg_loss, is_best

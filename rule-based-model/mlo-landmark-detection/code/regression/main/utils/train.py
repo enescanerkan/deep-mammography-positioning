@@ -1,10 +1,11 @@
-# train.py
+# train.py - MLO Landmark Detection
 
 import torch
 import gc
-import math
+from tqdm import tqdm
 from .loss import MultifacetedLoss
 from torch.optim.lr_scheduler import CosineAnnealingLR, LambdaLR
+
 
 class Trainer:
     def __init__(self, config, train_loader, model=None):
@@ -54,26 +55,22 @@ class Trainer:
     def train(self, epoch):
         self.model.train()
         total_loss = 0.0
-        total_pec1 = 0.0
-        total_pec2 = 0.0
-        total_nipple = 0.0
         batch_count = 0
         
-        for batch_idx, (images, landmarks) in enumerate(self.train_loader):
+        progress_bar = tqdm(self.train_loader, 
+                           desc=f'Epoch {epoch+1}/{self.config["num_epochs"]}',
+                           leave=True)
+        
+        for batch_idx, (images, landmarks) in enumerate(progress_bar):
             try:
                 images, landmarks = images.to(self.device), landmarks.to(self.device)
 
-                self.optimizer.zero_grad(set_to_none=True)  # More efficient than zero_grad()
+                self.optimizer.zero_grad(set_to_none=True)
                 outputs = self.model(images)
-                loss, pec1, pec2, nipple = self.criterion(outputs, landmarks)
+                loss = self.criterion(outputs, landmarks)
                 
                 # Check for NaN/Inf loss before backward
                 if torch.isnan(loss) or torch.isinf(loss):
-                    print(f"⚠️  WARNING: NaN/Inf loss detected! Skipping batch.")
-                    # Clean up tensors
-                    del images, landmarks, outputs, loss
-                    if torch.cuda.is_available():
-                        torch.cuda.empty_cache()
                     continue
                 
                 loss.backward()
@@ -92,15 +89,15 @@ class Trainer:
                 self.current_step += 1 
                 
                 total_loss += loss.item()
-                total_pec1 += pec1
-                total_pec2 += pec2
-                total_nipple += nipple
                 batch_count += 1
                 
-                # Clean up tensors to prevent memory leaks
+                # Update progress bar
+                progress_bar.set_postfix({'loss': f'{loss.item():.4f}'})
+                
+                # Clean up tensors
                 del images, landmarks, outputs, loss
                 
-                # Periodic memory cleanup every 50 batches
+                # Periodic memory cleanup
                 if batch_idx % 50 == 0 and batch_idx > 0:
                     if torch.cuda.is_available():
                         torch.cuda.empty_cache()
@@ -108,7 +105,6 @@ class Trainer:
             
             except RuntimeError as e:
                 if 'out of memory' in str(e):
-                    print(f"⚠️  WARNING: OOM in batch {batch_idx}. Clearing cache and skipping batch.")
                     if torch.cuda.is_available():
                         torch.cuda.empty_cache()
                     gc.collect()
@@ -116,14 +112,12 @@ class Trainer:
                 else:
                     raise e
         
-        # Use batch_count instead of len(train_loader) in case some batches were skipped
         if batch_count == 0:
-            print("⚠️  WARNING: All batches were skipped in this epoch!")
-            return 0.0, 0.0, 0.0, 0.0
+            return 0.0
             
         avg_loss = total_loss / batch_count
-        avg_pec1 = total_pec1 / batch_count
-        avg_pec2 = total_pec2 / batch_count
-        avg_nipple = total_nipple / batch_count
+        current_lr = self.optimizer.param_groups[0]['lr']
         
-        return avg_loss, avg_pec1, avg_pec2, avg_nipple
+        print(f"Train Loss: {avg_loss:.6f}, LR: {current_lr:.2e}")
+        
+        return avg_loss

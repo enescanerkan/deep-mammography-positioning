@@ -1,7 +1,4 @@
 {
-    "_comment": "All paths are relative to main/ directory (where script runs)",
-    "_note": "main/ -> regression/ -> code/ -> cc-landmark-detection/ -> rule-based-model/ -> project_root/",
-    
     "model_type": "CRAUNet",
     "split_file": "../../../../../labels/cc_labels.csv",
     "details_file": "../../../../../data/processed/cc/transformation_details.csv",
@@ -9,10 +6,9 @@
     "best_model_path": "../../models/cc_model.pth",
     
     "target_task": "nipple",
-    "batch_size": 16,
+    "batch_size": 8,
     "num_epochs": 300,
     "learning_rate": 1e-4,
-    "dropout_rate": 0.3,
     "weight_decay": 1e-5,
     
     "w": 3,
@@ -23,9 +19,6 @@
     
     "warmup_epochs": 5,
     "min_lr": 1e-6,
-    
-    "early_stopping_patience": 40,
-    "early_stopping_delta": 0.0005,
     
     "device": "cuda"
 }

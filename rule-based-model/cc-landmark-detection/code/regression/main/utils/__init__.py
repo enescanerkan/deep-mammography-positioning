@@ -10,7 +10,7 @@ Exports:
     - EarlyStopping: Early stopping callback
 """
 
-from .models import CRAUNet, create_model
+from .models import CRAUNet
 from .dataloader import create_dataloaders, preprocess_data
 from .train import Trainer
 from .validate import Validator
@@ -19,7 +19,6 @@ from .early_stopping import EarlyStopping
 
 __all__ = [
     'CRAUNet',
-    'create_model',
     'create_dataloaders',
     'preprocess_data',
     'Trainer',

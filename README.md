@@ -41,17 +41,19 @@ deep-mammography-positioning/
 │
 ├── rule-based-model/                        # Landmark detection + Clinical rules
 │   ├── mlo-landmark-detection/             # MLO landmark detection training
-│   │   ├── code/regression/
-│   │   │   ├── preprocessing/              # MLO preprocessing scripts
-│   │   │   └── main/                       # Training code
-│   │   ├── models/                         # Trained MLO model (.pth)
+│   │   ├── code/
+│   │   │   ├── models/                     # Trained MLO model (.pth)
+│   │   │   └── regression/
+│   │   │       ├── preprocessing/          # MLO preprocessing scripts
+│   │   │       └── main/                   # Training code
 │   │   └── landmark_coords/                # Landmark JSON files
 │   │
 │   ├── cc-landmark-detection/              # CC landmark detection training
-│   │   ├── code/regression/
-│   │   │   ├── preprocessing/              # CC preprocessing scripts
-│   │   │   └── main/                       # Training code
-│   │   ├── models/                         # Trained CC model (.pth)
+│   │   ├── code/
+│   │   │   ├── models/                     # Trained CC model (.pth)
+│   │   │   └── regression/
+│   │   │       ├── preprocessing/          # CC preprocessing scripts
+│   │   │       └── main/                   # Training code
 │   │   └── landmark_coords/                # Landmark JSON files
 │   │
 │   └── test-models/                        # Unified evaluation pipeline
@@ -67,7 +69,7 @@ deep-mammography-positioning/
 ### Prerequisites
 
 ```bash
-git clone https://github.com/enescanerkan/deep-mammography-positioning.git
+git clone https://github.com/yourusername/deep-mammography-positioning.git
 cd deep-mammography-positioning
 pip install -r requirements.txt
 ```
@@ -113,7 +115,7 @@ cd rule-based-model/mlo-landmark-detection/code/regression/main
 python main.py --config configs/example_config.json
 ```
 
-**Output**: `rule-based-model/mlo-landmark-detection/models/mlo_model.pth`
+**Output**: `rule-based-model/mlo-landmark-detection/code/models/mlo_model.pth`
 
 ### Step 5: Train CC Landmark Detection Model
 
@@ -122,7 +124,7 @@ cd rule-based-model/cc-landmark-detection/code/regression/main
 python main.py --config configs/cc_training_config.json
 ```
 
-**Output**: `rule-based-model/cc-landmark-detection/models/cc_model.pth`
+**Output**: `rule-based-model/cc-landmark-detection/code/models/cc_model.pth`
 
 ### Step 6: Train Dual-Stream Classification (Optional)
 
@@ -238,9 +240,10 @@ All configurations use **relative paths** that work automatically:
 
 A standalone Windows application is available with pre-trained models for immediate use.
 
-**Download**: [MammogramAnalysis.exe](https://drive.google.com/file/d/1NjDYhdxcQtbDw1QGIOfMldMnwW8qhSY3/view?usp=drive_link)
+**Download**: [MammogramAnalysis.exe](https://github.com/yourusername/deep-mammography-positioning/releases)
 
 ### Features
+
 - Load MLO and CC DICOM pairs directly
 - Automatic landmark detection and quality assessment
 - Visual display of pectoral muscle line, nipple position, and PNL measurements
@@ -249,10 +252,11 @@ A standalone Windows application is available with pre-trained models for immedi
 
 ### Screenshot
 
-![Mammogram Positioning Analysis GUI](assets/gui_screenshot.png)
+![Application Screenshot](assets/gui_screenshot.png)
 
-*The application displays MLO view (left) with pectoral muscle line and nipple-to-pectoral distance, CC view (right) with nipple-to-chest wall distance, and automated quality assessment based on the 10mm PNL rule.*
+The application displays MLO view (left) with pectoral muscle line and nipple-to-pectoral distance, CC view (right) with nipple-to-chest wall distance, and automated quality assessment based on the 10mm PNL rule.
 
 ## License
 
 MIT License
+
