@@ -238,9 +238,9 @@ All configurations use **relative paths** that work automatically:
 
 ## Desktop Application
 
-A standalone Windows application is available with pre-trained models for immediate use.
+A Windows GUI application with embedded pre-trained models for analyzing DICOM mammography images.
 
-**Download**: [MammogramAnalysis.exe](https://drive.google.com/file/d/1NjDYhdxcQtbDw1QGIOfMldMnwW8qhSY3/view?usp=drive_link)
+**Download from Google Drive**: [MammogramAnalysis.exe](https://drive.google.com/file/d/1NjDYhdxcQtbDw1QGIOfMldMnwW8qhSY3/view?usp=drive_link)
 
 ### Features
 
