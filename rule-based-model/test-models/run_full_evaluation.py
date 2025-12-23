@@ -42,7 +42,9 @@ class PathConfig:
         self.project_root = self.script_dir.parent.parent  # test-models -> rule-based-model -> project_root
         self.rule_based_dir = self.project_root / "rule-based-model"
         self.labels_dir = self.project_root / "labels"
-        self.images_dir = self.script_dir / "images_dicom"
+        self.data_dir = self.project_root / "data" / "raw"
+        self.mlo_images_dir = self.data_dir / "mlo"
+        self.cc_images_dir = self.data_dir / "cc"
         self.output_dir = self.script_dir / "evaluation_results"
         self.mlo_viz_dir = self.output_dir / "mlo_visualizations"
         self.cc_viz_dir = self.output_dir / "cc_visualizations"
@@ -56,11 +58,11 @@ class PathConfig:
         
     @property
     def mlo_model_path(self):
-        return self.rule_based_dir / "mlo-landmark-detection" / "models" / "mlo_model.pth"
+        return self.rule_based_dir / "mlo-landmark-detection" / "code" / "models" / "mlo_model.pth"
     
     @property
     def cc_model_path(self):
-        return self.rule_based_dir / "cc-landmark-detection" / "models" / "cc_model.pth"
+        return self.rule_based_dir / "cc-landmark-detection" / "code" / "models" / "cc_model.pth"
     
     @property
     def mlo_labels_path(self):
@@ -86,8 +88,10 @@ class PathConfig:
             errors.append(f"CC labels not found: {self.cc_labels_path}")
         if not self.metadata_path.exists():
             errors.append(f"Metadata not found: {self.metadata_path}")
-        if not self.images_dir.exists():
-            errors.append(f"Images directory not found: {self.images_dir}")
+        if not self.mlo_images_dir.exists():
+            errors.append(f"MLO images directory not found: {self.mlo_images_dir}")
+        if not self.cc_images_dir.exists():
+            errors.append(f"CC images directory not found: {self.cc_images_dir}")
             
         if errors:
             print("PATH ERRORS:")
@@ -1158,9 +1162,11 @@ def main():
     cc_evaluator = CCEvaluator(paths, device)
     preprocessor = ImagePreprocessor()
     
-    print("\nBuilding DICOM index...")
-    dicom_index = preprocessor.build_dicom_index(paths.images_dir)
-    print(f"DICOM files indexed: {len(dicom_index)}")
+    print("\nBuilding DICOM indexes...")
+    mlo_dicom_index = preprocessor.build_dicom_index(paths.mlo_images_dir)
+    cc_dicom_index = preprocessor.build_dicom_index(paths.cc_images_dir)
+    print(f"MLO DICOM files indexed: {len(mlo_dicom_index)}")
+    print(f"CC DICOM files indexed: {len(cc_dicom_index)}")
     
     test_mlo = mlo_labels[
         (mlo_labels['Split'] == 'Test') & 
@@ -1184,7 +1190,7 @@ def main():
                 continue
             laterality = mlo_meta.iloc[0]['Image Laterality']
             
-            dicom_path = preprocessor.get_dicom_path_for_sop(paths.images_dir, sop_uid)
+            dicom_path = preprocessor.get_dicom_path_for_sop(paths.mlo_images_dir, sop_uid)
             if not dicom_path:
                 continue
             
@@ -1247,7 +1253,7 @@ def main():
             cc_row = cc_labels[cc_labels['SOPInstanceUID'] == cc_sop].iloc[0]
             cc_quality = cc_row.get('qualitativeLabel', 'unknown')
             
-            dicom_path = preprocessor.get_dicom_path_for_sop(paths.images_dir, cc_sop)
+            dicom_path = preprocessor.get_dicom_path_for_sop(paths.cc_images_dir, cc_sop)
             if not dicom_path:
                 continue
             
