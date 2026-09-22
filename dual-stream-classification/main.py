@@ -93,7 +93,9 @@ class TrainingPipeline:
             num_workers=self.config.get('num_workers', 0),
             mirror_bad=mirror_bad,
             weighted_sampler=weighted_sampler,
-            use_augmentation=use_aug
+            use_augmentation=use_aug,
+            augment_preset=self.config.get('augment_preset', 'paper'),
+            normalize=self.config.get('normalize', 'none')
         )
     
     def _create_model(self) -> None:
@@ -122,7 +124,6 @@ class TrainingPipeline:
             factor=self.config.get('lr_scheduler_factor', 0.5),
             patience=self.config.get('lr_scheduler_patience', 5),
             min_lr=self.config.get('min_lr', 1e-7),
-            verbose=True
         )
     
     def train(self) -> None:
@@ -215,17 +216,83 @@ def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description='Dual-Stream Mammography Classification')
     parser.add_argument(
-        '--model', 
-        type=str, 
+        '--model',
+        type=str,
         default='resnet18',
         choices=get_available_models(),
         help='Model backbone'
     )
+    parser.add_argument(
+        '--fold',
+        type=int,
+        default=None,
+        help='Cross-validation fold index (reads labels/folds/, writes results per fold)'
+    )
+    parser.add_argument(
+        '--hparams-from',
+        type=str,
+        default=None,
+        choices=get_available_models(),
+        help='Borrow all training hyperparameters from this model, keeping only '
+             'the chosen backbone (for architecture comparison under identical settings)'
+    )
+    parser.add_argument(
+        '--image-size',
+        type=int,
+        default=512,
+        help='Input resolution; non-512 reads the correspondingly suffixed data dir'
+    )
+    parser.add_argument(
+        '--lr',
+        type=float,
+        default=None,
+        help='Override the learning rate (results are tagged with it, so runs '
+             'at different rates never overwrite each other)'
+    )
+    parser.add_argument(
+        '--augment',
+        choices=['paper', 'domain'],
+        default='paper',
+        help="Training augmentation. 'paper' is the published recipe; 'domain' "
+             "widens brightness/contrast and adds gamma and chest-wall-anchored "
+             "zoom, covering the photometric and scale gap to other vendors."
+    )
+    parser.add_argument(
+        '--normalize',
+        choices=['none', 'tissue'],
+        default='none',
+        help="'tissue' rescales every image so its tissue median is 0.35, "
+             "removing the detector tone-curve offset before the network sees it."
+    )
+    parser.add_argument(
+        '--selection',
+        choices=['f1', 'balanced'],
+        default='f1',
+        help="Which epoch to keep: 'f1' is the published criterion (weighted F1); "
+             "'balanced' uses (sensitivity + specificity) / 2, which stops the "
+             "majority class from deciding the checkpoint. Tagged separately so the "
+             "two never overwrite each other."
+    )
     args = parser.parse_args()
-    
+
     print_model_info(args.model)
-    
-    config = get_model_config(args.model)
+
+    config = get_model_config(
+        args.model,
+        fold=args.fold,
+        hparams_from=args.hparams_from,
+        image_size=args.image_size,
+        learning_rate=args.lr,
+        augment=args.augment,
+        normalize=args.normalize,
+    )
+    config['selection'] = args.selection
+    if args.selection != 'f1':
+        for key in ('best_model_path', 'metrics_path'):
+            path = config[key]
+            head, tail = path.rsplit('/', 1) if '/' in path else ('', path)
+            stem, dot, ext = tail.partition('.')
+            config[key] = (head + '/' if head else '') + f"{stem}_{args.selection}{dot}{ext}"
     config['device'] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     pipeline = TrainingPipeline(config)

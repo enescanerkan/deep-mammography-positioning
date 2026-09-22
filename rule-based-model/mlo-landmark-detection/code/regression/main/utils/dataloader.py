@@ -160,11 +160,15 @@ def create_dataloaders(unified_df, config, return_test_df=False):
 
         datasets[split] = MLODataset(split_df, config['base_image_dir'], config['target_task'])
 
+    num_workers = config.get('num_workers', 8)
     dataloaders = {
         x: DataLoader(
             datasets[x],
             batch_size=config['batch_size'],
-            shuffle=(x == 'Train')
+            shuffle=(x == 'Train'),
+            num_workers=num_workers,
+            pin_memory=True,
+            persistent_workers=num_workers > 0,
         )
         for x in datasets.keys()
     }

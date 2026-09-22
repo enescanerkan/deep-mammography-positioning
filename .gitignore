@@ -90,3 +90,6 @@ mlo_good_cc_results.json
 
 # Specific files to ignore
 FIX_SUMMARY.md
+
+# Cross-validation outputs
+cv_results/

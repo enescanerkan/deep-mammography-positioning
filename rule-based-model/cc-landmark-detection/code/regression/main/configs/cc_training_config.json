@@ -20,5 +20,7 @@
     "warmup_epochs": 5,
     "min_lr": 1e-6,
     
-    "device": "cuda"
+    "device": "cuda",
+    "use_amp": true,
+    "num_workers": 8
 }
