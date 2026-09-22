@@ -93,3 +93,4 @@ FIX_SUMMARY.md
 
 # Cross-validation outputs
 cv_results/
+labels/folds/

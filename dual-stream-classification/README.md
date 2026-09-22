@@ -67,7 +67,7 @@ python main.py --model resnet18 --fold 0
 | Option | Default | Meaning |
 |--------|---------|---------|
 | `--model` | `resnet18` | Backbone: `resnet18`, `resnet50`, `resnet50_radimagenet`, `convnext_tiny`, `efficientnet_b0`, `mobilenet_v2` |
-| `--fold` | none | Cross-validation fold index; reads `../labels/folds/{mlo,cc}_fold{i}.csv` and writes results per fold |
+| `--fold` | none | Cross-validation fold index; reads `../labels/folds/{mlo,cc}_fold{i}.csv` (generate with `../make_folds.py`) and writes results per fold |
 | `--hparams-from` | none | Take all training hyperparameters from this model's entry, keeping only the chosen backbone |
 | `--image-size` | `512` | Input resolution; other sizes read the correspondingly suffixed data directory |
 | `--lr` | config value | Override the learning rate |
