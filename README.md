@@ -37,7 +37,16 @@ deep-mammography-positioning/
 ├── labels/                                  # Train/Val/Test split labels
 │   ├── mlo_labels.csv
 │   ├── cc_labels.csv
-│   └── metadata.csv
+│   ├── metadata.csv
+│   ├── folds/                              # 10-fold CV splits (make_folds.py)
+│   └── external/                           # External test-set labels (CMMD, EMBED), see labels/external/README.md
+│
+├── weights/                                 # Pretrained backbone weights (not tracked), see weights/README.md
+│
+├── make_folds.py                            # Study-level stratified 10-fold split
+├── run_cv.py                                # Trains landmark + classifier models per fold
+├── evaluate_cv.py                           # Landmark models + PNL rule, per fold
+├── evaluate_cls_cv.py                       # Dual-stream classifier, per fold
 │
 ├── rule-based-model/                        # Landmark detection + Clinical rules
 │   ├── mlo-landmark-detection/             # MLO landmark detection training
@@ -131,9 +140,26 @@ python main.py --config configs/cc_training_config.json
 ```bash
 cd dual-stream-classification
 python main.py --model resnet18
+
+# radiology-pretrained backbone (download the weights first, see weights/README.md)
+python main.py --model resnet50_radimagenet --hparams-from resnet18
 ```
 
 **Note**: Uses the same preprocessed data from `data/processed/`
+
+### Step 7: 10-Fold Cross-Validation (Optional)
+
+```bash
+python make_folds.py                                   # writes labels/folds/ (already included)
+python run_cv.py --models mlo cc cls --folds 0-9       # add --dry-run to print the commands only
+python evaluate_cv.py --folds 0-9                      # landmark models + PNL rule per fold
+python evaluate_cls_cv.py --folds 0-9                  # dual-stream classifier per fold
+```
+
+Folds are made at the study level (both breasts of a study stay together) and
+stratified on the CC label; fold *i* is the test split, fold *i*+1 the validation
+split, the remaining eight folds the training split. Outputs are written to
+`../cv_results/` next to the clone.
 
 ## Models
 
@@ -161,7 +187,7 @@ python main.py --model resnet18
 |----------|-------|
 | Input | Paired MLO-CC images |
 | Output | Binary quality prediction (Good/Bad) |
-| Architecture | ResNet-18/50, EfficientNet-B0, MobileNet-V2 |
+| Architecture | ResNet-18/50, RadImageNet ResNet-50, ConvNeXt-Tiny, EfficientNet-B0, MobileNet-V2 |
 
 ## Training Parameters
 
@@ -174,6 +200,7 @@ python main.py --model resnet18
 | Scheduler | Cosine + Warmup (5 epochs) |
 | Loss | Wing Loss (α=1.8, β=1.8, γ=0.6) |
 | Epochs | 300 (Early stopping patience=40) |
+| Precision | bf16 autocast for the forward pass (`use_amp`), loss in fp32 |
 
 ### CC Landmark Detection
 
@@ -218,6 +245,14 @@ abc123,study001,L-MLO,Good,Train,Nipple,{"x":100,"y":200,"width":50,"height":50}
 ```
 
 **Important**: MLO and CC pairs share the same `StudyInstanceUID` and side (L/R).
+
+### External Test Sets
+
+Reference landmarks and labels for the external cohorts are in
+`labels/external/` (Chinese Mammography Database, 96 breast pairs; EMBED, 203 breast
+pairs), in the same schema, plus a `ChestWallSide` column for EMBED; see
+[labels/external/README.md](labels/external/README.md).
+The images themselves must be obtained from the source databases.
 
 ## File Extensions
 

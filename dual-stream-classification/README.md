@@ -13,7 +13,7 @@ This module implements a dual-stream classification approach that directly predi
 ## Key Features
 
 - Processes paired MLO-CC images simultaneously
-- Multiple backbone options (ResNet-18/50, EfficientNet-B0, MobileNet-V2)
+- Multiple backbone options (ResNet-18/50, RadImageNet ResNet-50, ConvNeXt-Tiny, EfficientNet-B0, MobileNet-V2)
 - Feature fusion strategies (concatenation, addition, attention)
 - Handles class imbalance with weighted sampling
 - Extensive data augmentation for mammography
@@ -50,7 +50,35 @@ python main.py --model resnet18
 python main.py --model resnet50
 python main.py --model efficientnet_b0
 python main.py --model mobilenet_v2
+
+# Radiology-pretrained ResNet-50 (RadImageNet); weights: see ../weights/README.md
+python main.py --model resnet50_radimagenet
+
+# Architecture comparison under identical training settings:
+# borrow every hyperparameter from the ResNet-18 entry, keep only the backbone
+python main.py --model resnet50_radimagenet --hparams-from resnet18
+
+# One cross-validation fold (labels read from ../labels/folds/, see ../make_folds.py)
+python main.py --model resnet18 --fold 0
 ```
+
+### Command-line options
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `--model` | `resnet18` | Backbone: `resnet18`, `resnet50`, `resnet50_radimagenet`, `convnext_tiny`, `efficientnet_b0`, `mobilenet_v2` |
+| `--fold` | none | Cross-validation fold index; reads `../labels/folds/{mlo,cc}_fold{i}.csv` and writes results per fold |
+| `--hparams-from` | none | Take all training hyperparameters from this model's entry, keeping only the chosen backbone |
+| `--image-size` | `512` | Input resolution; other sizes read the correspondingly suffixed data directory |
+| `--lr` | config value | Override the learning rate |
+| `--augment` | `paper` | `paper` = published recipe; `domain` = wider brightness/contrast, gamma and chest-wall-anchored zoom |
+| `--normalize` | `none` | `tissue` rescales each image so its tissue median is 0.35 |
+| `--selection` | `f1` | Checkpoint criterion: weighted F1 (published) or `balanced` = (sensitivity + specificity) / 2 |
+
+Runs that deviate from a backbone's own settings are tagged in the result name
+(for example `resnet50_radimagenet_hp-resnet18`), so they never overwrite the
+baseline run. Large backbones are trained with gradient accumulation
+(`MICRO_BATCH` in `model_configs.py`) so the effective batch size stays as configured.
 
 ### Configuration
 
@@ -75,12 +103,17 @@ MODEL_CONFIGS = {
 
 ## Supported Backbones
 
-| Backbone | 
-|----------|
-| ResNet-18 | 
-| ResNet-50 | 
-| EfficientNet-B0 | 
-| MobileNet-V2 |
+| Backbone | Pretraining | Notes |
+|----------|-------------|-------|
+| ResNet-18 | ImageNet | default, published configuration |
+| ResNet-50 | ImageNet | |
+| ResNet-50 (`resnet50_radimagenet`) | RadImageNet | radiology-pretrained; weights downloaded separately, see `../weights/README.md` |
+| ConvNeXt-Tiny | ImageNet | |
+| EfficientNet-B0 | ImageNet | |
+| MobileNet-V2 | ImageNet | |
+
+All backbones take single-channel input: the pretrained RGB first convolution is
+collapsed to one channel by averaging its filters.
 
 ## Training Parameters
 
@@ -225,6 +258,7 @@ dual-stream-classification/
 │   ├── loss.py                      # Loss functions
 │   ├── metrics.py                   # Evaluation metrics
 │   └── early_stopping.py            # Early stopping
+├── ../weights/                      # Pretrained weights (not tracked; see ../weights/README.md)
 ├── test-models/                     # Evaluation scripts
 │   └── evaluate_dual_model.py       # Main evaluation script
 └── results/
