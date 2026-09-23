@@ -249,8 +249,8 @@ abc123,study001,L-MLO,Good,Train,Nipple,{"x":100,"y":200,"width":50,"height":50}
 ### External Test Sets
 
 Reference landmarks and labels for the external cohorts are in
-`labels/external/` (Chinese Mammography Database, 96 breast pairs; EMBED, 203 breast
-pairs), in the same schema, plus a `ChestWallSide` column for EMBED; see
+`labels/external/` (Chinese Mammography Database and EMBED), in the same
+schema, plus a `ChestWallSide` column for EMBED; see
 [labels/external/README.md](labels/external/README.md).
 The images themselves must be obtained from the source databases.
 

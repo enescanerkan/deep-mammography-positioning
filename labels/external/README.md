@@ -6,10 +6,10 @@ paper, in the same CSV schema as `labels/mlo_labels.csv` and `labels/cc_labels.c
 are obtained from the source databases under their own terms, and every row is
 keyed by the original `StudyInstanceUID` / `SOPInstanceUID`.
 
-| Files | Cohort | Breast pairs | CC label (Good / Bad) |
-|-------|--------|--------------|-----------------------|
-| `cmmd_cc_labels.csv`, `cmmd_mlo_labels.csv` | Chinese Mammography Database (CMMD, TCIA) | 96 | 67 / 29 |
-| `embed_cc_labels.csv`, `embed_mlo_labels.csv` | EMBED (Emory Breast Imaging Dataset, open subset) | 203 | 137 / 66 |
+| Files | Cohort |
+|-------|--------|
+| `cmmd_cc_labels.csv`, `cmmd_mlo_labels.csv` | Chinese Mammography Database (CMMD, TCIA) |
+| `embed_cc_labels.csv`, `embed_mlo_labels.csv` | EMBED (Emory Breast Imaging Dataset, open subset) |
 
 ## Common conventions
 
@@ -28,12 +28,10 @@ keyed by the original `StudyInstanceUID` / `SOPInstanceUID`.
 
 ## CMMD
 
-96 breast-side CC-MLO pairs (192 images). The paper's Table 2 reports 97 pairs;
-one pair could not be matched in the current annotation export and is not
-included. One breast radiologist annotated the nipple (box) on CC and the nipple,
-the pectoral line and the posterior nipple line (`PNL`, `annotationMode = line`,
-as drawn) on MLO, and graded MLO positioning; all 96 pairs have a Good MLO, as
-the pairing rule requires. Every image is 1914 x 2294 px at 0.0941 mm; the CMMD
+Breast-side CC-MLO pairs of the external test set. One breast radiologist
+annotated the nipple (box) on CC and the nipple, the pectoral line and the
+posterior nipple line (`PNL`, `annotationMode = line`, as drawn) on MLO, and
+graded MLO positioning; all pairs have a Good MLO, as the pairing rule requires. Every image is 1914 x 2294 px at 0.0941 mm; the CMMD
 headers carry no manufacturer or model tag (`ManufacturerModelName` is left
 blank; the CMMD data descriptor reports GE systems), and the chest wall is on
 the laterality side of the stored pixels for every image.
