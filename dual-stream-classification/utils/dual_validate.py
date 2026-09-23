@@ -23,6 +23,17 @@ class DualValidator:
         self.device = config['device']
         self.model = model.to(self.device)
         self.criterion = CategoricalCrossEntropyLoss(class_weights=None).to(self.device)
+        # Which epoch counts as "best".
+        #
+        #   f1        weighted F1 - the original criterion. On this cohort Good is the
+        #             majority class, so a checkpoint that calls almost everything Good
+        #             scores well while missing most of the Bad cases.
+        #   balanced  (sensitivity + specificity) / 2 - treats the two classes equally.
+        #
+        # Default stays 'f1' so the published runs remain reproducible; the retrain
+        # passes 'balanced'.
+        self.selection = config.get('selection', 'f1')
+        self.best_score = 0.0
         self.best_val_f1 = 0.0
     
     def validate(self) -> Tuple[float, float, float, float, float, float, float, bool]:
@@ -54,8 +65,11 @@ class DualValidator:
         
         metrics = self._compute_metrics(total_loss, all_targets, all_outputs)
         
-        is_best = metrics[1] > self.best_val_f1
+        # metrics = (loss, f1, accuracy, precision, sensitivity, specificity, auc)
+        score = metrics[1] if self.selection == 'f1' else (metrics[4] + metrics[5]) / 2.0
+        is_best = score > self.best_score
         if is_best:
+            self.best_score = score
             self.best_val_f1 = metrics[1]
         
         return (*metrics, is_best)

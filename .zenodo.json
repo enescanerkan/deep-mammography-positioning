@@ -1,0 +1,73 @@
+{
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "mit",
+  "title": "deep-mammography-positioning: An Interpretable, Measurement-Based AI Framework for Cross-View PNL Discrepancy in Mammographic Positioning QA",
+  "description": "Code, training configurations and reference labels for the paper \"An Interpretable, Measurement-Based AI Framework for Cross-View PNL Discrepancy in Mammographic Positioning QA\": CRAUNet landmark detection (MLO pectoral line and nipple, CC nipple), the 10 mm posterior nipple line rule, dual-stream classifier baselines (ResNet-18, RadImageNet ResNet-50, ConvNeXt-Tiny), 10-fold cross-validation scripts, and reference landmarks for the internal (VinDr-Mammo) and external (Chinese Mammography Database, EMBED) cohorts. This release corresponds to the revised manuscript (R1).",
+  "creators": [
+    {
+      "name": "Denizoglu, Nurper",
+      "affiliation": "Sultan 2. Abdulhamid Han Training and Research Hospital, Department of Radiology, Istanbul, Turkey",
+      "orcid": "0000-0002-3677-8872"
+    },
+    {
+      "name": "Erkan, Enes Can",
+      "affiliation": "Istanbul Technical University, Biomedical Engineering Graduate Program, Istanbul, Turkey",
+      "orcid": "0009-0001-6285-3450"
+    },
+    {
+      "name": "Sanal, Yaren Nas",
+      "affiliation": "Sultan 2. Abdulhamid Han Training and Research Hospital, Department of Radiology, Istanbul, Turkey",
+      "orcid": "0009-0000-5866-9995"
+    },
+    {
+      "name": "Meltem, Emine",
+      "affiliation": "University of Health Sciences Istanbul Training and Research Hospital, Department of Radiology, Istanbul, Turkey",
+      "orcid": "0000-0003-3927-321X"
+    },
+    {
+      "name": "Cerekci, Esma Aktufan",
+      "affiliation": "Sisli Hamidiye Etfal Training and Research Hospital, Department of Radiology, Istanbul, Turkey",
+      "orcid": "0000-0002-3924-9394"
+    },
+    {
+      "name": "Yuzkat, Mecit",
+      "affiliation": "Mus Alparslan University, Faculty of Engineering and Architecture, Department of Software Engineering, Mus, Turkey; Turkish Health Data Research and Artificial Intelligence Applications Institute, Health Institutes of Turkey (TUSEB), Istanbul, Turkey",
+      "orcid": "0000-0003-4808-5181"
+    },
+    {
+      "name": "Alis, Deniz",
+      "affiliation": "Acibadem Mehmet Ali Aydinlar University, School of Medicine, Department of Radiology, Istanbul, Turkey",
+      "orcid": "0000-0002-7045-1793"
+    },
+    {
+      "name": "Karakas, Hakkı Muammer",
+      "affiliation": "Turkish Health Data Research and Artificial Intelligence Applications Institute, Health Institutes of Turkey (TUSEB), Istanbul, Turkey",
+      "orcid": "0000-0002-1328-8520"
+    },
+    {
+      "name": "Oksuz, Ilkay",
+      "affiliation": "Istanbul Technical University, Department of Computer Engineering, Istanbul, Turkey",
+      "orcid": "0000-0001-6478-0534"
+    },
+    {
+      "name": "Karaarslan, Ercan",
+      "affiliation": "Acibadem Mehmet Ali Aydinlar University, School of Medicine, Department of Radiology, Istanbul, Turkey",
+      "orcid": "0000-0002-4581-4273"
+    },
+    {
+      "name": "Aribal, Erkin",
+      "affiliation": "Acibadem Mehmet Ali Aydinlar University, School of Medicine, Department of Radiology, Istanbul, Turkey",
+      "orcid": "0000-0002-5525-8696"
+    }
+  ],
+  "keywords": [
+    "mammography",
+    "positioning quality",
+    "posterior nipple line",
+    "landmark detection",
+    "deep learning",
+    "quality assurance"
+  ],
+  "language": "eng"
+}

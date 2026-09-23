@@ -36,7 +36,11 @@ class MammographyAugmentation:
         p_contrast: float = 0.5,
         p_noise: float = 0.4,
         p_blur: float = 0.3,
-        p_elastic: float = 0.2
+        p_elastic: float = 0.2,
+        gamma_range: float = 0.0,
+        scale_range: float = 0.0,
+        p_gamma: float = 0.0,
+        p_scale: float = 0.0
     ):
         self.rotation_degree = rotation_degree
         self.brightness_factor = brightness_factor
@@ -51,6 +55,10 @@ class MammographyAugmentation:
         self.p_noise = p_noise
         self.p_blur = p_blur
         self.p_elastic = p_elastic
+        self.gamma_range = gamma_range
+        self.scale_range = scale_range
+        self.p_gamma = p_gamma
+        self.p_scale = p_scale
     
     def __call__(self, img: torch.Tensor) -> torch.Tensor:
         """Apply augmentations to image."""
@@ -71,7 +79,13 @@ class MammographyAugmentation:
         
         if random.random() < self.p_elastic:
             img = self._apply_elastic(img)
-        
+
+        if random.random() < self.p_gamma:
+            img = self._apply_gamma(img)
+
+        if random.random() < self.p_scale:
+            img = self._apply_scale(img)
+
         return img
     
     def _apply_rotation(self, img: torch.Tensor) -> torch.Tensor:
@@ -94,6 +108,42 @@ class MammographyAugmentation:
         kernel_size = int(2 * np.ceil(2 * self.blur_sigma) + 1)
         return TF.gaussian_blur(img, kernel_size=[kernel_size, kernel_size], sigma=[self.blur_sigma])
     
+    def _apply_gamma(self, img: torch.Tensor) -> torch.Tensor:
+        """Non-linear intensity shift; covers the tone curve differences
+        between detector vendors that brightness/contrast alone cannot."""
+        gamma = 1.0 + random.uniform(-self.gamma_range, self.gamma_range)
+        return torch.clamp(img, 0, 1) ** gamma
+
+    def _apply_scale(self, img: torch.Tensor) -> torch.Tensor:
+        """Zoom anchored on the chest wall.
+
+        The preprocessing pads every breast flush against its chest-wall edge,
+        so a centred zoom would break that convention. The flush side is read
+        off the image and the result is re-padded against the same edge, which
+        leaves the anatomy where the network expects it while varying how much
+        of the canvas the breast fills.
+        """
+        c, h, w = img.shape
+        factor = 1.0 + random.uniform(-self.scale_range, self.scale_range)
+        nh, nw = max(1, int(round(h * factor))), max(1, int(round(w * factor)))
+        resized = TF.resize(img, [nh, nw], interpolation=TF.InterpolationMode.BILINEAR,
+                            antialias=True)
+
+        left_flush = img[:, :, :w // 8].mean() > img[:, :, -w // 8:].mean()
+        out = torch.zeros_like(img)
+        if nh >= h:
+            top, sy = (nh - h) // 2, 0
+            rows = resized[:, top:top + h, :]
+        else:
+            sy, rows = (h - nh) // 2, resized
+        keep = min(nw, w)
+        cols = rows[:, :, :keep] if left_flush else rows[:, :, nw - keep:]
+        if left_flush:
+            out[:, sy:sy + cols.shape[1], :keep] = cols
+        else:
+            out[:, sy:sy + cols.shape[1], w - keep:] = cols
+        return out
+
     def _apply_elastic(self, img: torch.Tensor) -> torch.Tensor:
         img_np = img.squeeze(0).cpu().numpy()
         shape = img_np.shape
@@ -141,9 +191,21 @@ class TestTimeAugmentation:
         return augmented
 
 
+# The published recipe, and a variant widened to cover the photometric and
+# scale gap measured between VinDr (Siemens) and EMBED (Hologic/GE): the tissue
+# median moves 0.372 -> 0.265 and the breast fills 25% -> 35% of the canvas.
+AUGMENTATION_PRESETS = {
+    'paper': {},
+    'domain': dict(brightness_factor=0.35, contrast_factor=0.35,
+                   gamma_range=0.45, p_gamma=0.6,
+                   scale_range=0.20, p_scale=0.6),
+}
+
+
 def get_augmentation(
     split_type: str = 'Train',
     use_augmentation: bool = True,
+    preset: str = 'paper',
     **kwargs
 ) -> Callable:
     """
@@ -158,5 +220,5 @@ def get_augmentation(
         Augmentation callable
     """
     if split_type == 'Train' and use_augmentation:
-        return MammographyAugmentation(**kwargs)
+        return MammographyAugmentation(**{**AUGMENTATION_PRESETS[preset], **kwargs})
     return NoAugmentation()

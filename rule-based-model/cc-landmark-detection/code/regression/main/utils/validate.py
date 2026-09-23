@@ -16,6 +16,7 @@ class Validator:
             beta=config['beta'],
             gamma=config['gamma']
         ).to(self.device)
+        self.use_amp = config.get('use_amp', False) and self.device.type == 'cuda'
         self.best_val_loss = float('inf')
 
     def validate(self):
@@ -25,8 +26,9 @@ class Validator:
             print('Validation başladı')
             for images, landmarks in self.val_loader:
                 images, landmarks = images.to(self.device), landmarks.to(self.device)
-                outputs = self.model(images)
-                loss = self.criterion(outputs, landmarks)
+                with torch.autocast('cuda', dtype=torch.bfloat16, enabled=self.use_amp):
+                    outputs = self.model(images)
+                loss = self.criterion(outputs.float(), landmarks)
                 total_loss += loss.item()
 
         avg_loss = total_loss / len(self.val_loader)

@@ -29,16 +29,20 @@ class DualStreamDataset(Dataset):
         cc_labels_csv: str,
         split_type: str = 'Train',
         mirror_bad: bool = False,
-        use_augmentation: bool = True
+        use_augmentation: bool = True,
+        augment_preset: str = 'paper',
+        normalize: str = 'none'
     ):
         self.mlo_dir = mlo_dir
         self.cc_dir = cc_dir
         self.split_type = split_type
         self.mirror_bad = mirror_bad and split_type == 'Train'
         
+        self.normalize = normalize
         self.augmentation = get_augmentation(
             split_type=split_type,
-            use_augmentation=use_augmentation
+            use_augmentation=use_augmentation,
+            preset=augment_preset
         )
         
         self.paired_data = self._load_and_pair_data(mlo_labels_csv, cc_labels_csv)
@@ -129,16 +133,38 @@ class DualStreamDataset(Dataset):
     def _load_image(self, sop_uid: str, directory: str) -> torch.Tensor:
         """Load and preprocess image."""
         path = os.path.join(directory, f"{sop_uid}.npy")
-        
-        try:
-            img = np.load(path)
-        except FileNotFoundError:
-            img = np.zeros((512, 512), dtype=np.float32)
-        
+
+        # Deliberately not caught: a missing file used to be silently replaced
+        # by a blank image, which lets a whole run train on black inputs.
+        img = np.load(path)
+
         if img.ndim == 2:
             img = img[np.newaxis, ...]
-        
+
+        if self.normalize == 'tissue':
+            img = _tissue_normalize(img)
+
         return torch.from_numpy(img).float()
+
+
+TISSUE_MEDIAN_TARGET = 0.35
+
+
+def _tissue_normalize(img: np.ndarray) -> np.ndarray:
+    """Put every image's tissue median on a common value.
+
+    min-max scaling leaves the tissue median wherever the detector's tone curve
+    happens to place it -- 0.372 on VinDr's Siemens units, 0.265 on EMBED's
+    Hologic and GE ones. Rescaling by the median removes that offset at source
+    instead of asking augmentation to cover it.
+    """
+    tissue = img[img > 0.02]
+    if tissue.size < 1000:
+        return img
+    median = float(np.median(tissue))
+    if median <= 1e-6:
+        return img
+    return np.clip(img * (TISSUE_MEDIAN_TARGET / median), 0.0, 1.0).astype(np.float32)
 
 
 def get_dual_dataloader(
@@ -151,7 +177,9 @@ def get_dual_dataloader(
     num_workers: int = 4,
     mirror_bad: bool = False,
     weighted_sampler: bool = False,
-    use_augmentation: bool = True
+    use_augmentation: bool = True,
+    augment_preset: str = 'paper',
+    normalize: str = 'none'
 ) -> DataLoader:
     """
     Create dual-stream dataloader.
@@ -173,7 +201,7 @@ def get_dual_dataloader(
     """
     dataset = DualStreamDataset(
         mlo_dir, cc_dir, mlo_labels_csv, cc_labels_csv,
-        split_type, mirror_bad, use_augmentation
+        split_type, mirror_bad, use_augmentation, augment_preset, normalize
     )
     
     sampler = None

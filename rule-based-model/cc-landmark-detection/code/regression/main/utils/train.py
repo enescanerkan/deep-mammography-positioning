@@ -13,6 +13,7 @@ class Trainer:
         self.train_loader = train_loader
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = model
+        self.use_amp = config.get('use_amp', False) and self.device.type == 'cuda'
         self.criterion = MultifacetedLoss(
             w=config['w'],
             epsilon=config['epsilon'],
@@ -66,8 +67,11 @@ class Trainer:
                 images, landmarks = images.to(self.device), landmarks.to(self.device)
 
                 self.optimizer.zero_grad(set_to_none=True)
-                outputs = self.model(images)
-                loss = self.criterion(outputs, landmarks)
+                # Forward in bf16 when enabled; the loss stays in fp32 because
+                # Wing Loss takes a log and is sensitive to reduced precision.
+                with torch.autocast('cuda', dtype=torch.bfloat16, enabled=self.use_amp):
+                    outputs = self.model(images)
+                loss = self.criterion(outputs.float(), landmarks)
                 
                 # Check for NaN/Inf loss before backward
                 if torch.isnan(loss) or torch.isinf(loss):

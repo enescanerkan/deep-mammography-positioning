@@ -30,7 +30,8 @@ def main(config):
     train_loader, val_loader = dataloaders['Train'], dataloaders['Validation']
     
     # Checkpoint directory
-    checkpoint_dir = '../checkpoints'
+    # Per-run when set, so parallel runs cannot overwrite each other's resume state.
+    checkpoint_dir = config.get('checkpoint_dir', '../checkpoints')
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     # Determine the number of output features based on the target task

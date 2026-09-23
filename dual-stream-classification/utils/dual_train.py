@@ -134,25 +134,34 @@ class DualTrainer:
             weight_decay=self.config.get('weight_decay', 1e-4)
         )
     
-    def _compute_loss(
+    def _prepare_batch(
         self,
         mlo_images: torch.Tensor,
         cc_images: torch.Tensor,
         targets: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Compute loss with optional mixup."""
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, float]:
+        """Draw the mixup decision once per batch, before any micro-batching."""
         if self.mixup.should_apply():
-            mixed_mlo, mixed_cc, targets_a, targets_b, lam = self.mixup.apply(
-                mlo_images, cc_images, targets, self.device
-            )
-            outputs = self.model(mixed_mlo, mixed_cc)
-            loss = lam * self.criterion(outputs, targets_a) + (1 - lam) * self.criterion(outputs, targets_b)
+            return self.mixup.apply(mlo_images, cc_images, targets, self.device)
+        return mlo_images, cc_images, targets, targets, 1.0
+
+    def _compute_loss(
+        self,
+        mlo_images: torch.Tensor,
+        cc_images: torch.Tensor,
+        targets_a: torch.Tensor,
+        targets_b: torch.Tensor,
+        lam: float
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Compute the (possibly mixup-weighted) loss for one forward pass."""
+        outputs = self.model(mlo_images, cc_images)
+        if lam == 1.0:
+            loss = self.criterion(outputs, targets_a)
         else:
-            outputs = self.model(mlo_images, cc_images)
-            loss = self.criterion(outputs, targets)
-        
+            loss = (lam * self.criterion(outputs, targets_a)
+                    + (1 - lam) * self.criterion(outputs, targets_b))
         return loss, outputs
-    
+
     def train(self, epoch: int) -> Tuple[float, float, float, float, float, float, float]:
         """
         Train for one epoch.
@@ -169,27 +178,47 @@ class DualTrainer:
             desc=f'Epoch {epoch + 1}/{self.config["num_epochs"]}'
         )
         
+        # Larger backbones are split into micro-batches, but the optimizer still
+        # steps once per full batch, so every backbone trains at the same
+        # effective batch size.
+        micro = self.config.get('micro_batch_size') or self.config['batch_size']
+
         for mlo_images, cc_images, targets, _ in progress_bar:
             mlo_images = mlo_images.to(self.device)
             cc_images = cc_images.to(self.device)
             targets = targets.to(self.device)
-            
+
+            mlo_in, cc_in, targets_a, targets_b, lam = self._prepare_batch(
+                mlo_images, cc_images, targets
+            )
+
+            batch_size = mlo_in.size(0)
             self.optimizer.zero_grad()
-            loss, outputs = self._compute_loss(mlo_images, cc_images, targets)
-            loss.backward()
-            
+            batch_loss = 0.0
+
+            for start in range(0, batch_size, micro):
+                end = min(start + micro, batch_size)
+                loss, outputs = self._compute_loss(
+                    mlo_in[start:end], cc_in[start:end],
+                    targets_a[start:end], targets_b[start:end], lam
+                )
+                # Weight by share of the batch so the summed gradient matches
+                # a single full-batch backward pass.
+                (loss * (end - start) / batch_size).backward()
+
+                batch_loss += loss.item() * (end - start) / batch_size
+                predicted = torch.argmax(outputs, dim=1)
+                all_targets.extend(targets[start:end].detach().cpu().numpy())
+                all_outputs.extend(predicted.detach().cpu().numpy())
+
             gradient_clip = self.config.get('gradient_clip_max_norm', 1.0)
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=gradient_clip)
-            
+
             self.optimizer.step()
-            
-            total_loss += loss.item()
-            predicted = torch.argmax(outputs, dim=1)
-            all_targets.extend(targets.detach().cpu().numpy())
-            all_outputs.extend(predicted.detach().cpu().numpy())
-            
-            progress_bar.set_postfix(loss=loss.item())
-        
+
+            total_loss += batch_loss
+            progress_bar.set_postfix(loss=batch_loss)
+
         return self._compute_metrics(total_loss, all_targets, all_outputs)
     
     def _compute_metrics(

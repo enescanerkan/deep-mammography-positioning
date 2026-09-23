@@ -18,6 +18,7 @@ class Validator:
             gamma=config['gamma'],
             adaptive_weights=False  # Validation uses fixed weights for consistent evaluation
         ).to(self.device)
+        self.use_amp = config.get('use_amp', False) and self.device.type == 'cuda'
         self.best_val_loss = float('inf')
 
     def validate(self):
@@ -31,8 +32,9 @@ class Validator:
             progress_bar = tqdm(self.val_loader, desc='Validating', leave=False)
             for batch_idx, (images, landmarks) in enumerate(progress_bar):
                 images, landmarks = images.to(self.device), landmarks.to(self.device)
-                outputs = self.model(images)
-                loss = self.criterion(outputs, landmarks)
+                with torch.autocast('cuda', dtype=torch.bfloat16, enabled=self.use_amp):
+                    outputs = self.model(images)
+                loss = self.criterion(outputs.float(), landmarks)
                 
                 # Check for NaN/Inf in validation loss
                 if torch.isnan(loss) or torch.isinf(loss):
