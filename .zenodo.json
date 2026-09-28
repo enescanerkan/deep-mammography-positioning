@@ -3,12 +3,17 @@
   "access_right": "open",
   "license": "mit",
   "title": "deep-mammography-positioning: An Interpretable, Measurement-Based AI Framework for Cross-View PNL Discrepancy in Mammographic Positioning QA",
-  "description": "Code, training configurations and reference labels for the paper \"An Interpretable, Measurement-Based AI Framework for Cross-View PNL Discrepancy in Mammographic Positioning QA\": CRAUNet landmark detection (MLO pectoral line and nipple, CC nipple), the 10 mm posterior nipple line rule, dual-stream classifier baselines (ResNet-18, RadImageNet ResNet-50, ConvNeXt-Tiny), 10-fold cross-validation scripts, and reference landmarks for the internal (VinDr-Mammo) and external (Chinese Mammography Database, EMBED) cohorts. This release corresponds to the revised manuscript (R1).",
+  "description": "Code, training configurations and reference labels for the paper \"An Interpretable, Measurement-Based AI Framework for Cross-View PNL Discrepancy in Mammographic Positioning QA\": CRAUNet landmark detection (MLO pectoral line and nipple, CC nipple), the 10 mm posterior nipple line rule, dual-stream classifier baselines (ResNet-18 and RadImageNet ResNet-50), 10-fold cross-validation scripts, and reference landmarks for the internal (VinDr-Mammo) and external (Chinese Mammography Database, EMBED) cohorts. This release corresponds to the revised manuscript (R1).",
   "creators": [
     {
       "name": "Denizoglu, Nurper",
       "affiliation": "Sultan 2. Abdulhamid Han Training and Research Hospital, Department of Radiology, Istanbul, Turkey",
       "orcid": "0000-0002-3677-8872"
+    },
+    {
+      "name": "Seker, Mustafa Ege",
+      "affiliation": "University of Wisconsin, School of Medicine, Department of Radiology, Madison, Wisconsin, USA",
+      "orcid": "0000-0001-7664-5786"
     },
     {
       "name": "Erkan, Enes Can",
