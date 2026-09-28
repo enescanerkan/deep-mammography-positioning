@@ -1,6 +1,6 @@
 # Deep Mammography Positioning Quality Assessment
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22920044.svg)](https://doi.org/10.5281/zenodo.22920044)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22920043.svg)](https://doi.org/10.5281/zenodo.22920043)
 
 A comprehensive deep learning framework for automated mammography positioning quality evaluation using landmark detection and rule-based assessment.
 
@@ -295,7 +295,7 @@ The application displays MLO view (left) with pectoral muscle line and nipple-to
 
 ## Archived Release
 
-Release v1.1.0, the version used for the revised manuscript, is archived on Zenodo: https://doi.org/10.5281/zenodo.22920044
+Release v1.1.0, the version used for the revised manuscript, is archived on Zenodo: https://doi.org/10.5281/zenodo.22920043
 
 ## License
 
