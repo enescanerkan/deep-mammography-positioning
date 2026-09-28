@@ -153,10 +153,10 @@ TISSUE_MEDIAN_TARGET = 0.35
 def _tissue_normalize(img: np.ndarray) -> np.ndarray:
     """Put every image's tissue median on a common value.
 
-    min-max scaling leaves the tissue median wherever the detector's tone curve
-    happens to place it -- 0.372 on VinDr's Siemens units, 0.265 on EMBED's
-    Hologic and GE ones. Rescaling by the median removes that offset at source
-    instead of asking augmentation to cover it.
+    Min-max scaling leaves the tissue median wherever the detector's tone curve
+    happens to place it, which differs between systems. Rescaling by the median
+    removes that offset at source. Optional (--normalize tissue); the published
+    runs do not use it.
     """
     tissue = img[img > 0.02]
     if tissue.size < 1000:

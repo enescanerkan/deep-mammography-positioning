@@ -25,13 +25,10 @@ class DualValidator:
         self.criterion = CategoricalCrossEntropyLoss(class_weights=None).to(self.device)
         # Which epoch counts as "best".
         #
-        #   f1        weighted F1 - the original criterion. On this cohort Good is the
-        #             majority class, so a checkpoint that calls almost everything Good
-        #             scores well while missing most of the Bad cases.
-        #   balanced  (sensitivity + specificity) / 2 - treats the two classes equally.
+        #   f1        weighted F1 - the criterion used for the published runs.
+        #   balanced  (sensitivity + specificity) / 2 - weights the two classes equally.
         #
-        # Default stays 'f1' so the published runs remain reproducible; the retrain
-        # passes 'balanced'.
+        # The default, 'f1', reproduces the published runs.
         self.selection = config.get('selection', 'f1')
         self.best_score = 0.0
         self.best_val_f1 = 0.0

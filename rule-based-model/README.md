@@ -89,8 +89,8 @@ The primary quality criterion:
 PNL_MLO = Perpendicular distance from nipple to pectoral line in MLO view
 PNL_CC = Distance from nipple to chest wall in CC view
 
-Quality = Good  if  |PNL_MLO - PNL_CC| < 10mm
-Quality = Bad   if  |PNL_MLO - PNL_CC| ≥ 10mm
+Quality = Good  if  |PNL_MLO - PNL_CC| ≤ 10mm
+Quality = Bad   if  |PNL_MLO - PNL_CC| > 10mm
 ```
 
 ## Model Outputs

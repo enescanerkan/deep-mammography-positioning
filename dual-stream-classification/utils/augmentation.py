@@ -191,9 +191,9 @@ class TestTimeAugmentation:
         return augmented
 
 
-# The published recipe, and a variant widened to cover the photometric and
-# scale gap measured between VinDr (Siemens) and EMBED (Hologic/GE): the tissue
-# median moves 0.372 -> 0.265 and the breast fills 25% -> 35% of the canvas.
+# 'paper' is the recipe used for the published results. 'domain' is an optional
+# variant with wider brightness/contrast, gamma and zoom ranges for training on
+# images from other acquisition systems.
 AUGMENTATION_PRESETS = {
     'paper': {},
     'domain': dict(brightness_factor=0.35, contrast_factor=0.35,

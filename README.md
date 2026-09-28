@@ -232,8 +232,8 @@ split, the remaining eight folds the training split. Outputs are written to
 PNL_MLO = Distance from nipple to pectoral line in MLO view
 PNL_CC = Distance from nipple to chest wall in CC view
 
-Quality = Good  if  |PNL_MLO - PNL_CC| < 10mm
-Quality = Bad   if  |PNL_MLO - PNL_CC| ≥ 10mm
+Quality = Good  if  |PNL_MLO - PNL_CC| ≤ 10mm
+Quality = Bad   if  |PNL_MLO - PNL_CC| > 10mm
 ```
 
 ## Dataset Structure
@@ -295,7 +295,7 @@ The application displays MLO view (left) with pectoral muscle line and nipple-to
 
 ## Archived Release
 
-Release v1.1.0, the version used for the revised manuscript, is archived on Zenodo: https://doi.org/10.5281/zenodo.22920043
+Release v1.1.1, the version used for the revised manuscript, is archived on Zenodo: https://doi.org/10.5281/zenodo.22920043
 
 ## License
 

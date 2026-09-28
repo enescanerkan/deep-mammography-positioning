@@ -269,9 +269,8 @@ def main():
         choices=['f1', 'balanced'],
         default='f1',
         help="Which epoch to keep: 'f1' is the published criterion (weighted F1); "
-             "'balanced' uses (sensitivity + specificity) / 2, which stops the "
-             "majority class from deciding the checkpoint. Tagged separately so the "
-             "two never overwrite each other."
+             "'balanced' uses (sensitivity + specificity) / 2. Tagged separately so "
+             "the two never overwrite each other."
     )
     args = parser.parse_args()
 
