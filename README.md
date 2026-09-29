@@ -80,7 +80,7 @@ deep-mammography-positioning/
 ### Prerequisites
 
 ```bash
-git clone https://github.com/yourusername/deep-mammography-positioning.git
+git clone https://github.com/enescanerkan/deep-mammography-positioning.git
 cd deep-mammography-positioning
 pip install -r requirements.txt
 ```
